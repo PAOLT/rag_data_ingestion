@@ -1,0 +1,18 @@
+# conda create 
+name: rag_ingestion
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - pip:
+    - azure-identity~=1.15.0
+    - azure-search-documents~=11.4.0
+    - pip install azure-ai-documentintelligence~=1.0.0b1
+    - azure-storage-blob~=12.19.0
+    - tqdm~=4.66.2
+    - pandas~=2.0.3
+    - python-dotenv~=1.0.1
+    - pypdf~=4.0.2
+    - PyMuPDF~=1.23.23
+    - Pillow~=10.2.0
