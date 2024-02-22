@@ -1,0 +1,13 @@
+system:
+Rewrite the user question aiming to query a search engine. Consider the chat history, which holds past user questions and assistant answers.
+
+chat history:
+{% for item in chat_history %}
+user question:
+{{item.inputs.question}}
+assistant answer:
+{{item.outputs.answer}}
+{% endfor %}
+
+user question:
+{{question}}

@@ -1,0 +1,79 @@
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/Flow.schema.json
+environment:
+  python_requirements_txt: requirements.txt
+inputs:
+  chat_history:
+    type: list
+    is_chat_history: true
+    is_chat_input: false
+    default:
+    - inputs:
+        question: Hello!
+      outputs:
+        answer: Hello! How can I help?
+  question:
+    type: string
+    is_chat_input: true
+    default: How can one install Windows CA 2 Tier setup?
+    is_chat_history: false
+outputs:
+  answer:
+    type: string
+    reference: ${chat.output}
+    is_chat_output: true
+nodes:
+- name: chat
+  type: llm
+  source:
+    type: code
+    path: chat.jinja2
+  inputs:
+    deployment_name: 35-16k
+    max_tokens: 256
+    temperature: 0.7
+    chat_history: ${inputs.chat_history}
+    question: ${inputs.question}
+    response_format:
+      type: text
+    context: ${compile_context.output}
+  connection: az_oai
+  api: chat
+- name: Vector_DB_Lookup
+  type: python
+  source:
+    type: package
+    tool: promptflow_vectordb.tool.vector_db_lookup.VectorDBLookup.search
+  inputs:
+    connection: ai_search
+    vector: ${Embed.output}
+    index_name: vector-1708561553900
+    text_field: chunk
+    vector_field: vector
+- name: Embed
+  type: python
+  source:
+    type: package
+    tool: promptflow.tools.embedding.embedding
+  inputs:
+    connection: az_oai
+    input: ${rewrite_query.output}
+    deployment_name: embeddings
+  aggregation: false
+- name: compile_context
+  type: python
+  source:
+    type: code
+    path: compile_context.py
+  inputs:
+    documents: ${Vector_DB_Lookup.output}
+- name: rewrite_query
+  type: llm
+  source:
+    type: code
+    path: rewrite_query.jinja2
+  inputs:
+    question: ${inputs.question}
+    chat_history: ${inputs.chat_history}
+    deployment_name: 35-16k
+  connection: az_oai
+  api: chat
